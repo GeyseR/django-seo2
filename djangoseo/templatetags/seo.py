@@ -4,6 +4,7 @@ import collections
 
 from django import template
 from django.template import VariableDoesNotExist
+from django.utils.translation import get_language
 from six import text_type, string_types
 
 from djangoseo.base import get_metadata, get_linked_metadata
@@ -50,6 +51,9 @@ class MetadataNode(template.Node):
         # If a language is given, pass that on
         if self.language:
             kwargs['language'] = self.language.resolve(context)
+
+        if 'language' not in kwargs:
+            kwargs['language'] = get_language()
 
         metadata = None
         # If the target is a django model object

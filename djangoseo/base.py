@@ -22,6 +22,8 @@ from djangoseo.options import Options
 from djangoseo.fields import MetadataField, Tag, MetaTag, KeywordTag, Raw
 from djangoseo.backends import backend_registry, RESERVED_FIELD_NAMES
 
+import settings
+
 registry = collections.OrderedDict()
 
 
@@ -72,7 +74,7 @@ class FormattedMetadata(object):
         for instance in self.__instances():
             value = instance._resolve_value(name)
             if value:
-                return value
+                return mark_safe(value)
 
         # Otherwise, return an appropriate default value (populate_from)
         # TODO: This is duplicated in meta_models. Move this to a common home.
@@ -305,16 +307,23 @@ def get_linked_metadata(obj, name=None, context=None, site=None,
     if InstanceMetadata is not None:
         try:
             instance_md = InstanceMetadata.objects.get(
-                _content_type=content_type, _object_id=obj.pk)
+                _content_type=content_type, _object_id=obj.pk, _language=language)
         except InstanceMetadata.DoesNotExist:
-            instance_md = InstanceMetadata(_content_object=obj)
+            instance_md = InstanceMetadata(_content_object=obj, _language=language)
         instances.append(instance_md)
     if ModelMetadata is not None:
         try:
-            model_md = ModelMetadata.objects.get(_content_type=content_type)
+            model_md = ModelMetadata.objects.get(_content_type=content_type, _language=language)
         except ModelMetadata.DoesNotExist:
-            model_md = ModelMetadata(_content_type=content_type)
+            model_md = ModelMetadata(_content_type=content_type, _language=language)
+
+        model_md._process_context({
+            'model_instance': obj,
+            'view_context': context
+        })
+
         instances.append(model_md)
+
     return FormattedMetadata(Metadata, instances, '', site, language)
 
 

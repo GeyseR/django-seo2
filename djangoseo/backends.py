@@ -310,21 +310,14 @@ class ViewBackend(MetadataBackend):
 class ModelInstanceBackend(MetadataBackend):
     name = "modelinstance"
     verbose_name = "Model Instance"
-    unique_together = (("_path",), ("_content_type", "_object_id"))
+    unique_together = (("_content_type", "_object_id"),)
 
     def get_instances(self, queryset, path, context):
-        return queryset.filter(_path=path)
+        return []
 
     def get_model(self, options):
         @python_2_unicode_compatible
         class ModelInstanceMetadataBase(MetadataBaseModel):
-            _path = models.CharField(
-                _('path'),
-                max_length=255,
-                blank=True,
-                editable=False,
-            )
-
             _content_type = models.ForeignKey(
                 ContentType,
                 verbose_name=_("model"),
@@ -358,7 +351,7 @@ class ModelInstanceBackend(MetadataBackend):
             objects = self.get_manager(options)()
 
             def __str__(self):
-                return self._path
+                return ''
 
             class Meta:
                 unique_together = self.get_unique_together(options)
@@ -373,12 +366,11 @@ class ModelInstanceBackend(MetadataBackend):
                 return {'model_instance': self._content_object}
 
             def _resolve_value(self, name):
-                value = super(ModelInstanceMetadataBase, self)._resolve_value(
-                    name)
+                value = super(ModelInstanceMetadataBase, self)._resolve_value(name)
                 try:
-                    return self._resolve_template(value, self._content_object,
-                                                  context=self.__context)
-                except AttributeError:
+                    return self._resolve_template(value, self._content_object)
+                except AttributeError as e:
+                #     print e
                     return value
 
             def save(self, *args, **kwargs):

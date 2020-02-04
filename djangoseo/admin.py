@@ -25,8 +25,8 @@ class PathMetadataAdmin(admin.ModelAdmin):
 
 
 class ModelInstanceMetadataAdmin(admin.ModelAdmin):
-    list_display = ('_content_type', '_object_id', '_path')
-    search_fields = ('_path', '_content_type__name')
+    list_display = ('_content_type', '_object_id')
+    search_fields = ('_content_type__name',)
 
 
 class ModelMetadataAdmin(admin.ModelAdmin):
@@ -37,7 +37,6 @@ class ModelMetadataAdmin(admin.ModelAdmin):
 class ViewMetadataAdmin(admin.ModelAdmin):
     list_display = ('_view',)
     search_fields = ('_view',)
-
 
 # Varients with sites support
 
