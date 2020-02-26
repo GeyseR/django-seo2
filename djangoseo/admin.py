@@ -26,7 +26,8 @@ class PathMetadataAdmin(admin.ModelAdmin):
 
 class ModelInstanceMetadataAdmin(admin.ModelAdmin):
     list_display = ('_content_type', '_object_id')
-    search_fields = ('_content_type__name',)
+    search_fields = ('_content_type__model', '_object_id')
+    list_filter = ('_content_type', '_language')
 
 
 class ModelMetadataAdmin(admin.ModelAdmin):
@@ -37,6 +38,7 @@ class ModelMetadataAdmin(admin.ModelAdmin):
 class ViewMetadataAdmin(admin.ModelAdmin):
     list_display = ('_view',)
     search_fields = ('_view',)
+    list_filter = ('_language')
 
 # Varients with sites support
 
@@ -143,6 +145,8 @@ class MetadataFormset(BaseGenericInlineFormSet):
         form.empty_permitted = False
         form.has_changed = lambda: True
 
+        form.fields["seo_text"] =forms.CharField(widget=CKEditorWidget(), required=False)
+
         # Set a marker on this object to prevent automatic metadata creation
         # This is seen by the post_save handler, which then skips this
         # instance.
@@ -154,8 +158,7 @@ class MetadataFormset(BaseGenericInlineFormSet):
 
 def get_inline(metadata_class):
     attrs = {
-        'max_num': 1,
-        'extra': 1,
+        'extra': 0,
         'model': metadata_class._meta.get_model('modelinstance'),
         'ct_field': "_content_type",
         'ct_fk_field': "_object_id",
