@@ -38,7 +38,7 @@ class ModelMetadataAdmin(admin.ModelAdmin):
 class ViewMetadataAdmin(admin.ModelAdmin):
     list_display = ('_view',)
     search_fields = ('_view',)
-    list_filter = ('_language')
+    list_filter = ('_language',)
 
 # Varients with sites support
 
