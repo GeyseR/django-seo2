@@ -1,6 +1,4 @@
 #!/usr/bin/env python
-from __future__ import unicode_literals
-
 import warnings
 
 from django.core.management.base import BaseCommand, CommandError

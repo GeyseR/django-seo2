@@ -1,11 +1,8 @@
-from __future__ import unicode_literals
-
 import collections
 
 from django import template
 from django.template import VariableDoesNotExist
 from django.utils.translation import get_language
-from six import text_type, string_types
 
 from djangoseo.base import get_metadata, get_linked_metadata
 
@@ -33,7 +30,7 @@ class MetadataNode(template.Node):
         else:
             if isinstance(target, collections.Callable):
                 target = target()
-            if isinstance(target, string_types):
+            if isinstance(target, str):
                 path = target
             elif hasattr(target, 'get_absolute_url'):
                 path = target.get_absolute_url()
@@ -60,7 +57,7 @@ class MetadataNode(template.Node):
         if hasattr(target, 'pk'):
             metadata = get_linked_metadata(target, self.metadata_name, context,
                                            **kwargs)
-        if not isinstance(path, string_types):
+        if not isinstance(path, str):
             path = None
         if not metadata:
             # Fetch the metadata
@@ -75,7 +72,7 @@ class MetadataNode(template.Node):
             context.dicts[0][self.variable_name] = metadata
             return ''
         else:
-            return text_type(metadata)
+            return str(metadata)
 
 
 def do_get_metadata(parser, token):

@@ -1,5 +1,3 @@
-from __future__ import unicode_literals
-
 from djangoseo import seo
 from django.conf import settings
 

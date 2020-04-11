@@ -1,5 +1,3 @@
-from __future__ import unicode_literals
-
 import collections
 
 from django.utils.translation import ugettext_lazy as _
@@ -10,8 +8,6 @@ from django.contrib.sites.models import Site
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.template import Template, Context
-from django.utils.encoding import python_2_unicode_compatible
-from six import string_types, with_metaclass
 
 from djangoseo.utils import resolve_to_name, NotSet, Literal
 
@@ -74,7 +70,7 @@ class MetadataBaseModel(models.Model):
     @staticmethod
     def _resolve_template(value, model_instance=None, context=None):
         """Resolves any template references in the given value."""
-        if isinstance(value, string_types) and "{" in value:
+        if isinstance(value, str) and "{" in value:
             if context is None:
                 context = Context()
             if model_instance is not None:
@@ -140,7 +136,7 @@ class MetadataBackendBase(type):
         return new_class
 
 
-class MetadataBackend(with_metaclass(MetadataBackendBase, object)):
+class MetadataBackend(metaclass=MetadataBackendBase):
     name = None
     verbose_name = None
     unique_together = None
@@ -188,7 +184,6 @@ class PathBackend(MetadataBackend):
         return queryset.filter(_path=path)
 
     def get_model(self, options):
-        @python_2_unicode_compatible
         class PathMetadataBase(MetadataBaseModel):
             _path = models.CharField(
                 _('path'),
@@ -201,6 +196,7 @@ class PathBackend(MetadataBackend):
                     null=True,
                     blank=True,
                     verbose_name=_("site"),
+                    on_delete=models.CASCADE
                 )
 
             if options.use_i18n:
@@ -251,7 +247,6 @@ class ViewBackend(MetadataBackend):
         return queryset.filter(_view=view_name or "")
 
     def get_model(self, options):
-        @python_2_unicode_compatible
         class ViewMetadataBase(MetadataBaseModel):
             __context = None
 
@@ -268,6 +263,7 @@ class ViewBackend(MetadataBackend):
                     null=True,
                     blank=True,
                     verbose_name=_("site"),
+                    on_delete=models.CASCADE
                 )
 
             if options.use_i18n:
@@ -316,7 +312,6 @@ class ModelInstanceBackend(MetadataBackend):
         return []
 
     def get_model(self, options):
-        @python_2_unicode_compatible
         class ModelInstanceMetadataBase(MetadataBaseModel):
             _content_type = models.ForeignKey(
                 ContentType,
@@ -336,6 +331,7 @@ class ModelInstanceBackend(MetadataBackend):
                     null=True,
                     blank=True,
                     verbose_name=_("site"),
+                    on_delete=models.CASCADE
                 )
 
             if options.use_i18n:
@@ -410,7 +406,6 @@ class ModelBackend(MetadataBackend):
             return queryset.filter(_content_type=content_type)
 
     def get_model(self, options):
-        @python_2_unicode_compatible
         class ModelMetadataBase(MetadataBaseModel):
             __instance = None
             __context = None

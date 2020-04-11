@@ -1,20 +1,17 @@
-from __future__ import unicode_literals
-
 # TODO:
 # * Move/rename namespace polluting attributes
 # * Documentation
 # * Make backends optional: Meta.backends = (path, modelinstance/model, view)
 
+from functools import partialmethod
 import hashlib
 import collections
 
 from django.db import models
-from django.utils.functional import curry
 from django.contrib.contenttypes.models import ContentType
 from django.utils.safestring import mark_safe
 from django.core.cache import cache
-from django.utils.encoding import iri_to_uri, python_2_unicode_compatible
-from six import with_metaclass, text_type
+from django.utils.encoding import iri_to_uri
 
 
 from djangoseo.utils import NotSet, Literal
@@ -22,12 +19,9 @@ from djangoseo.options import Options
 from djangoseo.fields import MetadataField, Tag, MetaTag, KeywordTag, Raw
 from djangoseo.backends import backend_registry, RESERVED_FIELD_NAMES
 
-import settings
-
 registry = collections.OrderedDict()
 
 
-@python_2_unicode_compatible
 class FormattedMetadata(object):
     """
     Allows convenient access to selected metadata.
@@ -100,7 +94,7 @@ class FormattedMetadata(object):
         if name in self.__metadata._meta.groups:
             if value is not None:
                 return value or None
-            value = '\n'.join(text_type(
+            value = '\n'.join(str(
                 BoundMetadataField(self.__metadata._meta.elements[f],
                                    self._resolve_value(f)))
                               for f in
@@ -134,7 +128,7 @@ class FormattedMetadata(object):
             value = None
 
         if value is None:
-            value = mark_safe('\n'.join(text_type(getattr(self, f)) for f, e in
+            value = mark_safe('\n'.join(str(getattr(self, f)) for f, e in
                                         self.__metadata._meta.elements.items()
                                         if e.head))
             if self.__cache_prefix is not None:
@@ -143,7 +137,6 @@ class FormattedMetadata(object):
         return value
 
 
-@python_2_unicode_compatible
 class BoundMetadataField(object):
     """
     An object to help provide templates with access to a "bound" metadata
@@ -262,7 +255,7 @@ class MetadataBase(type):
                 yield instance
 
 
-class Metadata(with_metaclass(MetadataBase, object)):
+class Metadata(metaclass=MetadataBase):
     pass
 
 
@@ -403,10 +396,10 @@ def register_signals():
     for metadata_class in list(registry.values()):
         model_instance = metadata_class._meta.get_model('modelinstance')
         if model_instance is not None:
-            update_callback = curry(_update_callback,
-                                    model_class=model_instance)
-            delete_callback = curry(_delete_callback,
-                                    model_class=model_instance)
+            update_callback = partialmethod(_update_callback,
+                                            model_class=model_instance)
+            delete_callback = partialmethod(_delete_callback,
+                                            model_class=model_instance)
 
             # Connect the models listed in settings to the update callback.
             for model in metadata_class._meta.seo_models:
