@@ -49,9 +49,6 @@ class MetadataNode(template.Node):
         if self.language:
             kwargs['language'] = self.language.resolve(context)
 
-        if 'language' not in kwargs:
-            kwargs['language'] = get_language()
-
         metadata = None
         # If the target is a django model object
         if hasattr(target, 'pk'):
